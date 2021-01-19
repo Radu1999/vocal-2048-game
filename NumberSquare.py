@@ -1,10 +1,7 @@
 
 import pygame
-import sys
-from pygame.locals import *
 
 from GameObject import GameObject
-from Constants import *
 
 
 class NumberSquare(GameObject):
@@ -19,7 +16,6 @@ class NumberSquare(GameObject):
     def set_image(self, image):
         self.image = pygame.image.load(image)
         self.image = pygame.transform.scale(self.image, (150, 150))
-
 
     def update(self):
         self.position[0] = 20 + self.column * 160

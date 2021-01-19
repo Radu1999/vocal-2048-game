@@ -1,4 +1,3 @@
-
 import pygame
 import sys
 from pygame.locals import *
@@ -7,18 +6,25 @@ import math
 from NumberSquare import NumberSquare
 from Board import Board
 from Constants import *
+import speech_recognition as sr
 from ButtonObject import Button
+
 
 class Game:
     def __init__(self):
-        self.difficulty = 0
-        self.board = None
+        self.vocal_exit = pygame.event.Event(pygame.USEREVENT, attr1='vocal_exit')
+        self.vocal_right = pygame.event.Event(pygame.USEREVENT, attr1='vocal_right')
+        self.vocal_left = pygame.event.Event(pygame.USEREVENT, attr1='vocal_left')
+        self.vocal_up = pygame.event.Event(pygame.USEREVENT, attr1='vocal_up')
+        self.vocal_down = pygame.event.Event(pygame.USEREVENT, attr1='vocal_down')
+        self.r = sr.Recognizer()
 
     def initialise(self):
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("2048")
         self.board = Board(self, self.difficulty)
         self.gameObjects = []
+        self.steps = 0
         for i in range(4):
             for j in range(4):
                 self.gameObjects.append(self.board.game_board[i][j])
@@ -47,6 +53,26 @@ class Game:
                         pygame.quit()
                         sys.exit()
 
+    def get_command(self, recognizer):
+        with sr.Microphone() as source:
+            print(f"{self.steps}. Say next command or exit to end:")
+            self.steps += 1
+            audio = recognizer.record(source, duration=2.5)
+            try:
+                command = recognizer.recognize_google(audio)
+                if 'exit' in command:
+                    pygame.event.post(self.vocal_exit)
+                elif 'right' in command:
+                    pygame.event.post(self.vocal_right)
+                elif 'left' in command:
+                    pygame.event.post(self.vocal_left)
+                elif 'up' in command:
+                    pygame.event.post(self.vocal_up)
+                elif 'down' in command:
+                    pygame.event.post(self.vocal_down)
+            except sr.UnknownValueError:
+                pass
+
     def LOSE(self):
         font = pygame.font.SysFont("Verdana", 20, bold=True)
         while True:
@@ -74,6 +100,9 @@ class Game:
     def input(self):
         events = pygame.event.get()
         for event in events:
+            if event == self.vocal_exit or event.type == QUIT:
+                pygame.quit()
+                sys.exit()
             if event.type == KEYUP:
                 if event.key == K_d:
                     self.board.move_right()
@@ -91,9 +120,22 @@ class Game:
                     self.board.move_down()
                     self.board.get_random_empty_square()
                     self.board.check_state()
-            elif event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+            if event == self.vocal_right:
+                self.move_right()
+                self.get_random_empty_square()
+                self.board.check_state()
+            if event == self.vocal_left:
+                self.move_left()
+                self.get_random_empty_square()
+                self.board.check_state()
+            if event == self.vocal_up:
+                self.move_up()
+                self.get_random_empty_square()
+                self.board.check_state()
+            if event == self.vocal_down:
+                self.move_down()
+                self.get_random_empty_square()
+                self.board.check_state()
 
     def update(self):
         for obj in self.gameObjects:
@@ -116,7 +158,7 @@ class Game:
         else:
             self.LOSE()
             pass
-                
+
     def main_menu(self):
         self.window = pygame.display.set_mode((500, 500))
         ok = 0
@@ -128,21 +170,20 @@ class Game:
         # create difficulty buttons
         _2048 = Button(WHITE, 130, 300, 45, 45, "2048")
         _1024 = Button(WHITE, 200, 300, 45, 45, "1024")
-        _512  = Button(WHITE, 270, 300, 45, 45, "512")
-        _256  = Button(WHITE, 340, 300, 45, 45, "256")
-        
+        _512 = Button(WHITE, 270, 300, 45, 45, "512")
+        _256 = Button(WHITE, 340, 300, 45, 45, "256")
+
         # pygame loop for start screen
         while True:
             self.window.fill(BLACK)
 
             self.window.blit(pygame.transform.scale(
-            pygame.image.load("images/icon.ico"), (200, 200)), (155, 50))
+                pygame.image.load("images/icon.ico"), (200, 200)), (155, 50))
 
             font = pygame.font.SysFont("Verdana", 20, bold=True)
 
             diff_text = font.render("Difficulty: ", 1, WHITE)
             self.window.blit(diff_text, (30, 310))
-
 
             font_buttons = pygame.font.SysFont("Comic Sans MS", 14, bold=True)
 
@@ -154,11 +195,11 @@ class Game:
 
             pygame.display.update()
             for event in pygame.event.get():
-            # store mouse position (coordinates)
+                # store mouse position (coordinates)
                 pos = pygame.mouse.get_pos()
                 if event.type == QUIT or \
-                    (event.type == pygame.KEYDOWN and event.key == K_q):
-                # exit if q is pressed 
+                        (event.type == pygame.KEYDOWN and event.key == K_q):
+                    # exit if q is pressed
                     pygame.quit()
                     sys.exit()
 
@@ -170,21 +211,21 @@ class Game:
                     _512.colour = WHITE
                     _256.colour = WHITE
                     self.difficulty = 2048
-                
+
                 if _1024.isOver(pos):
                     _1024.colour = YELLOW
                     _2048.colour = WHITE
                     _512.colour = WHITE
                     _256.colour = WHITE
                     self.difficulty = 1024
-                
+
                 if _512.isOver(pos):
                     _512.colour = YELLOW
                     _1024.colour = WHITE
                     _2048.colour = WHITE
                     _256.colour = WHITE
                     self.difficulty = 512
-                
+
                 if _256.isOver(pos):
                     _256.colour = YELLOW
                     _1024.colour = WHITE
@@ -193,30 +234,27 @@ class Game:
                     self.difficulty = 256
 
                 if not play.isOver(pos) and \
-                    not _2048.isOver(pos) and \
-                    not _1024.isOver(pos) and \
-                    not _512.isOver(pos) and \
-                    not _256.isOver(pos):
-
+                        not _2048.isOver(pos) and \
+                        not _1024.isOver(pos) and \
+                        not _512.isOver(pos) and \
+                        not _256.isOver(pos):
                     self.difficulty = 0
 
                     _2048.colour = WHITE
                     _1024.colour = WHITE
                     _512.colour = WHITE
                     _256.colour = WHITE
-                
+
                 if play.isOver(pos) and self.difficulty != 0:
-                        ok = 1
-            
+                    ok = 1
+
             if play.isOver(pos):
-                        play.colour = YELLOW
+                play.colour = YELLOW
             else:
-                        play.colour = WHITE 
-              
+                play.colour = WHITE
+
             if ok == 1:
                 break
-
-
 
     def run(self):
         self.main_menu()
@@ -225,3 +263,4 @@ class Game:
             self.input()
             self.update()
             self.draw()
+            self.get_command(self.r)
