@@ -94,8 +94,7 @@ class Game:
                         pygame.quit()
                         sys.exit()
                 if event.type == pygame.KEYDOWN and event.key == K_y:
-                        pygame.quit()
-                        sys.exit()
+                        self.run()
     
     def input(self):
         events = pygame.event.get()
@@ -121,20 +120,20 @@ class Game:
                     self.board.get_random_empty_square()
                     self.board.check_state()
             if event == self.vocal_right:
-                self.move_right()
-                self.get_random_empty_square()
+                self.board.move_right()
+                self.board.get_random_empty_square()
                 self.board.check_state()
             if event == self.vocal_left:
-                self.move_left()
-                self.get_random_empty_square()
+                self.board.move_left()
+                self.board.get_random_empty_square()
                 self.board.check_state()
             if event == self.vocal_up:
-                self.move_up()
-                self.get_random_empty_square()
+                self.board.move_up()
+                self.board.get_random_empty_square()
                 self.board.check_state()
             if event == self.vocal_down:
-                self.move_down()
-                self.get_random_empty_square()
+                self.board.move_down()
+                self.board.get_random_empty_square()
                 self.board.check_state()
 
     def update(self):
