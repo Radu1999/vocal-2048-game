@@ -10,7 +10,6 @@ from ButtonObject import Button
 
 class Game:
     def __init__(self):
-        self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("2048")
         self.game_board = []
         self.gameObjects = []
@@ -187,6 +186,7 @@ class Game:
         pygame.time.Clock().tick(30)
 
     def main_menu(self):
+        self.window = pygame.display.set_mode((500, 500))
         ok = 0
         difficulty = 0
 
@@ -288,6 +288,7 @@ class Game:
 
     def run(self):
         self.main_menu()
+        self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         while True:
             self.input()
             self.update()
