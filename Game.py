@@ -5,193 +5,86 @@ from pygame.locals import *
 import random
 import math
 from NumberSquare import NumberSquare
+from Board import Board
 from Constants import *
 from ButtonObject import Button
 
 class Game:
     def __init__(self):
+        self.difficulty = 0
+        self.board = None
+
+    def initialise(self):
+        self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("2048")
-        self.game_board = []
+        self.board = Board(self, self.difficulty)
         self.gameObjects = []
-        self.state = "PLAY"
-        for r, y in enumerate(range(20, 660, 160)):
-            row = []
-            for c, x in enumerate(range(20, 660, 160)):
-                number_square = NumberSquare(self, [x, y], "images/0.png", 0, c, r)
-                row.append(number_square)
-                self.gameObjects += [number_square]
-            self.game_board.append(row)
-        self.get_random_empty_square()
-        self.get_random_empty_square()
-
-    def get_random_empty_square(self):
-        empty_list = []
-        for square in self.gameObjects:
-            if square.value == 0:
-                empty_list.append(square)
-        square = random.choice(empty_list)
-        value = int(math.pow(2, random.randint(1, 3)))
-        square.value = value
-        image = "images/" + str(value) + ".png"
-        square.set_image(image)
-
-    def move_right(self):
-        for i in range(4):
-            last_r = i
-            last_c = 3
-            for j in range(2, -1, -1):
-                square = self.game_board[i][j]
-                if square.value != 0:
-                    last_square = self.game_board[last_r][last_c]
-                    if last_square.value == 0:
-                        square.column = last_c
-                        last_square.column = j
-                        temp = last_square
-                        self.game_board[last_r][last_c] = square
-                        self.game_board[i][j] = temp
-                    elif last_square.value == square.value:
-                        last_square.value += square.value
-                        new_image = "images/" + str(last_square.value) + ".png"
-                        last_square.set_image(new_image)
-                        square.value = 0
-                        square.set_image("images/0.png")
-                    else:
-                        last_square = self.game_board[last_r][last_c - 1]
-                        square.column = last_c - 1
-                        last_square.column = j
-                        last_c = last_c - 1
-                        temp = last_square
-                        self.game_board[last_r][last_c] = square
-                        self.game_board[i][j] = temp
-
-    def move_left(self):
-        for i in range(4):
-            last_r = i
-            last_c = 0
-            for j in range(1, 4):
-                square = self.game_board[i][j]
-                if square.value != 0:
-                    last_square = self.game_board[last_r][last_c]
-                    if last_square.value == 0:
-                        square.column = last_c
-                        last_square.column = j
-                        temp = last_square
-                        self.game_board[last_r][last_c] = square
-                        self.game_board[i][j] = temp
-                    elif last_square.value == square.value:
-                        last_square.value += square.value
-                        new_image = "images/" + str(last_square.value) + ".png"
-                        last_square.set_image(new_image)
-                        square.value = 0
-                        square.set_image("images/0.png")
-                    else:
-                        last_square = self.game_board[last_r][last_c + 1]
-                        square.column = last_c + 1
-                        last_square.column = j
-                        last_c = last_c + 1
-                        temp = last_square
-                        self.game_board[last_r][last_c] = square
-                        self.game_board[i][j] = temp
-
-    def move_up(self):
-        for j in range(4):
-            last_r = 0
-            last_c = j
-            for i in range(1, 4):
-                square = self.game_board[i][j]
-                if square.value != 0:
-                    last_square = self.game_board[last_r][last_c]
-                    if last_square.value == 0:
-                        square.row = last_r
-                        last_square.row = i
-                        temp = last_square
-                        self.game_board[last_r][last_c] = square
-                        self.game_board[i][j] = temp
-                    elif last_square.value == square.value:
-                        last_square.value += square.value
-                        new_image = "images/" + str(last_square.value) + ".png"
-                        last_square.set_image(new_image)
-                        square.value = 0
-                        square.set_image("images/0.png")
-                    else:
-                        last_square = self.game_board[last_r + 1][last_c]
-                        square.row = last_r + 1
-                        last_square.row = i
-                        last_r = last_r + 1
-                        temp = last_square
-                        self.game_board[last_r][last_c] = square
-                        self.game_board[i][j] = temp
-
-    def move_down(self):
-        for j in range(4):
-            last_r = 3
-            last_c = j
-            for i in range(2, -1, -1):
-                square = self.game_board[i][j]
-                if square.value != 0:
-                    last_square = self.game_board[last_r][last_c]
-                    if last_square.value == 0:
-                        square.row = last_r
-                        last_square.row = i
-                        temp = last_square
-                        self.game_board[last_r][last_c] = square
-                        self.game_board[i][j] = temp
-                    elif last_square.value == square.value:
-                        last_square.value += square.value
-                        new_image = "images/" + str(last_square.value) + ".png"
-                        last_square.set_image(new_image)
-                        square.value = 0
-                        square.set_image("images/0.png")
-                    else:
-                        last_square = self.game_board[last_r - 1][last_c]
-                        square.row = last_r - 1
-                        last_square.row = i
-                        last_r = last_r - 1
-                        temp = last_square
-                        self.game_board[last_r][last_c] = square
-                        self.game_board[i][j] = temp
-
-    def chech_state(self):
-        game_ended = True
         for i in range(4):
             for j in range(4):
-                if self.difficulty == self.game_board[i][j].value:
-                    self.state = "WON"
-                    return
-                if (self.game_board[i][j].value == 0):
-                    game_ended = False
-                if game_ended == True:
-                    if i != 3 and self.game_board[i][j].value == self.game_board[i+1][j].value:
-                        game_ended = False
-                    elif j != 3 and self.game_board[i][j].value == self.game_board[i][j+1].value:
-                        game_ended = False
-                    elif i != 0 and self.game_board[i][j].value == self.game_board[i-1][j].value:
-                        game_ended = False
-                    elif j != 0 and self.game_board[i][j].value == self.game_board[i][j-1].value:
-                        game_ended = False
-        if game_ended == True:
-            self.state = "LOST"
+                self.gameObjects.append(self.board.game_board[i][j])
+
+    def WIN(self):
+        font = pygame.font.SysFont("Verdana", 20, bold=True)
+        while True:
+            # Fill the window with a transparent background
+            s = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            s.fill([238, 228, 218, 200])
+            self.window.blit(s, (0, 0))
+            message = "YOU WIN"
+
+            self.window.blit(font.render(message, 1, BLACK), (140, 180))
+            # Ask user to play again
+            self.window.blit(font.render(
+                "Play again? (yes/ no)", 1, BLACK), (80, 255))
+
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == QUIT or \
+                        (event.type == pygame.KEYDOWN and event.key == K_n):
+                    pygame.quit()
+                    sys.exit()
+
+    def LOSE(self):
+        font = pygame.font.SysFont("Verdana", 20, bold=True)
+        while True:
+            # Fill the window with a transparent background
+            s = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            s.fill([238, 228, 218, 200])
+            self.window.blit(s, (0, 0))
+            message = "YOU LOSE"
+
+            self.window.blit(font.render(message, 1, BLACK), (140, 180))
+            # Ask user to play again
+            self.window.blit(font.render(
+                "Play again? (yes/ no)", 1, BLACK), (80, 255))
+
+            pygame.display.update()
+            for event in pygame.event.get():
+                if event.type == QUIT or \
+                        (event.type == pygame.KEYDOWN and event.key == K_n):
+                        pygame.quit()
+                        sys.exit()
 
     def input(self):
         events = pygame.event.get()
         for event in events:
             if event.type == KEYUP:
                 if event.key == K_d:
-                    self.move_right()
-                    self.chech_state()
-                    self.get_random_empty_square()
+                    self.board.move_right()
+                    self.board.get_random_empty_square()
+                    self.board.check_state()
                 if event.key == K_a:
-                    self.move_left()
-                    self.chech_state()
-                    self.get_random_empty_square()
+                    self.board.move_left()  
+                    self.board.get_random_empty_square()
+                    self.board.check_state()    
                 if event.key == K_w:
-                    self.move_up()
-                    self.chech_state()
-                    self.get_random_empty_square()
+                    self.board.move_up()
+                    self.board.get_random_empty_square()
+                    self.board.check_state()
                 if event.key == K_s:
-                    self.move_down()
-                    self.chech_state()
-                    self.get_random_empty_square()
+                    self.board.move_down()
+                    self.board.get_random_empty_square()
+                    self.board.check_state()
             elif event.type == QUIT:
                 pygame.quit()
                 sys.exit()
@@ -201,7 +94,8 @@ class Game:
             obj.update()
 
     def draw(self):
-        if self.state == "PLAY":
+        state = self.board.state
+        if state == "PLAY":
             self.window.fill(WHITE)
 
             for obj in self.gameObjects:
@@ -210,11 +104,11 @@ class Game:
             pygame.display.update()
 
             pygame.time.Clock().tick(30)
-        elif self.state == "WON":
-            # TODO won_screen
+        elif state == "WON":
+            self.WIN()
             pass
         else:
-            # TODO lost_screen
+            self.LOSE()
             pass
                 
     def main_menu(self):
@@ -320,7 +214,7 @@ class Game:
 
     def run(self):
         self.main_menu()
-        self.window = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.initialise()
         while True:
             self.input()
             self.update()
