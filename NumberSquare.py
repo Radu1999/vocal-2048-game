@@ -6,42 +6,24 @@ from pygame.locals import *
 from GameObject import GameObject
 from Constants import *
 
-class NumberSquare(GameObject):
-    def __init__(self, game, position, velocity):
-        super().__init__(game, position, velocity)
-        self.value = 2
 
-    def input(self, events):
-        for event in events:
-            if event.type == KEYDOWN:
-                if event.key == K_a:
-                    self.velocity[0] = -self.max_velocity
-                if event.key == K_d:
-                    self.velocity[0] = self.max_velocity
-            if event.type == KEYUP:
-                if event.key == K_a:
-                    self.velocity[0] = 0
-                if event.key == K_d:
-                    self.velocity[0] = 0
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+class NumberSquare(GameObject):
+    def __init__(self, game, position, image, value, column, row):
+        super().__init__(game, position)
+        self.image = pygame.image.load(image)
+        self.image = pygame.transform.scale(self.image, (150, 150))
+        self.value = value
+        self.column = column
+        self.row = row
+
+    def set_image(self, image):
+        self.image = pygame.image.load(image)
+        self.image = pygame.transform.scale(self.image, (150, 150))
 
 
     def update(self):
-        self.position[0] += self.velocity[0]
-        self.position[1] += self.velocity[1]
-        print(self.velocity[0])
-        if self.position[0] < 0:
-            self.position[0] = WIDTH
-        if self.position[0] > WIDTH:
-            self.position[0] = 0
-
-        if self.position[1] < 0:
-            self.position[1] = HEIGHT
-        if self.position[1] > HEIGHT:
-            self.position[1] = 0
+        self.position[0] = 20 + self.column * 160
+        self.position[1] = 20 + self.row * 160
 
     def draw(self):
-        pygame.draw.rect(self.game.window, BLACK, pygame.Rect(self.position[0],self.position[1],60,60))
-    
+        self.game.window.blit(self.image, self.position)
