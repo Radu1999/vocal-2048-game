@@ -6,11 +6,11 @@ import math
 from NumberSquare import NumberSquare
 from Constants import *
 import speech_recognition as sr
+from ButtonObject import Button
 
 
 class Game:
     def __init__(self):
-        self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("2048")
         self.game_board = []
         self.gameObjects = []
@@ -20,6 +20,8 @@ class Game:
         self.vocal_up = pygame.event.Event(pygame.USEREVENT, attr1='vocal_up')
         self.vocal_down = pygame.event.Event(pygame.USEREVENT, attr1='vocal_down')
         self.r = sr.Recognizer()
+        self.steps = 0
+        self.state = "PLAY"
         for r, y in enumerate(range(20, 660, 160)):
             row = []
             for c, x in enumerate(range(20, 660, 160)):
@@ -159,8 +161,9 @@ class Game:
 
     def get_command(self, recognizer):
         with sr.Microphone() as source:
-            print("Say next command or exit to end:")
-            audio = recognizer.record(source, duration=2)
+            print(f"{self.steps}. Say next command or exit to end:")
+            self.steps += 1
+            audio = recognizer.record(source, duration=2.5)
             try:
                 command = recognizer.recognize_google(audio)
                 if 'exit' in command:
@@ -175,6 +178,27 @@ class Game:
                     pygame.event.post(self.vocal_down)
             except sr.UnknownValueError:
                 pass
+
+    def check_state(self):
+        game_ended = True
+        for i in range(4):
+            for j in range(4):
+                if self.difficulty == self.game_board[i][j].value:
+                    self.state = "WON"
+                    return
+                if self.game_board[i][j].value == 0:
+                    game_ended = False
+                if game_ended:
+                    if i != 3 and self.game_board[i][j].value == self.game_board[i + 1][j].value:
+                        game_ended = False
+                    elif j != 3 and self.game_board[i][j].value == self.game_board[i][j + 1].value:
+                        game_ended = False
+                    elif i != 0 and self.game_board[i][j].value == self.game_board[i - 1][j].value:
+                        game_ended = False
+                    elif j != 0 and self.game_board[i][j].value == self.game_board[i][j - 1].value:
+                        game_ended = False
+        if game_ended:
+            self.state = "LOST"
 
     def input(self):
         events = pygame.event.get()
@@ -200,16 +224,122 @@ class Game:
             obj.update()
 
     def draw(self):
-        self.window.fill(WHITE)
+        if self.state == "PLAY":
+            self.window.fill(WHITE)
 
-        for obj in self.gameObjects:
-            obj.draw()
+            for obj in self.gameObjects:
+                obj.draw()
 
-        pygame.display.update()
+            pygame.display.update()
 
-        pygame.time.Clock().tick(30)
+            pygame.time.Clock().tick(30)
+        elif self.state == "WON":
+            # TODO won_screen
+            pass
+        else:
+            # TODO lost_screen
+            pass
+
+    def main_menu(self):
+        self.window = pygame.display.set_mode((500, 500))
+        ok = 0
+        self.difficulty = 0
+
+        # create play button
+        play = Button(WHITE, 235, 400, 45, 45, "Play")
+
+        # create difficulty buttons
+        _2048 = Button(WHITE, 130, 300, 45, 45, "2048")
+        _1024 = Button(WHITE, 200, 300, 45, 45, "1024")
+        _512 = Button(WHITE, 270, 300, 45, 45, "512")
+        _256 = Button(WHITE, 340, 300, 45, 45, "256")
+
+        # pygame loop for start screen
+        while True:
+            self.window.fill(BLACK)
+
+            self.window.blit(pygame.transform.scale(
+                pygame.image.load("images/icon.ico"), (200, 200)), (155, 50))
+
+            font = pygame.font.SysFont("Verdana", 20, bold=True)
+
+            diff_text = font.render("Difficulty: ", 1, WHITE)
+            self.window.blit(diff_text, (30, 310))
+
+            font_buttons = pygame.font.SysFont("Comic Sans MS", 14, bold=True)
+
+            play.draw(self.window, BLACK, font_buttons)
+            _256.draw(self.window, BLACK, font_buttons)
+            _512.draw(self.window, BLACK, font_buttons)
+            _1024.draw(self.window, BLACK, font_buttons)
+            _2048.draw(self.window, BLACK, font_buttons)
+
+            pygame.display.update()
+            for event in pygame.event.get():
+                # store mouse position (coordinates)
+                pos = pygame.mouse.get_pos()
+                if event.type == QUIT or \
+                        (event.type == pygame.KEYDOWN and event.key == K_q):
+                    # exit if q is pressed
+                    pygame.quit()
+                    sys.exit()
+
+                # check if a button is clicked
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if _2048.isOver(pos):
+                    _2048.colour = YELLOW
+                    _1024.colour = WHITE
+                    _512.colour = WHITE
+                    _256.colour = WHITE
+                    self.difficulty = 2048
+
+                if _1024.isOver(pos):
+                    _1024.colour = YELLOW
+                    _2048.colour = WHITE
+                    _512.colour = WHITE
+                    _256.colour = WHITE
+                    self.difficulty = 1024
+
+                if _512.isOver(pos):
+                    _512.colour = YELLOW
+                    _1024.colour = WHITE
+                    _2048.colour = WHITE
+                    _256.colour = WHITE
+                    self.difficulty = 512
+
+                if _256.isOver(pos):
+                    _256.colour = YELLOW
+                    _1024.colour = WHITE
+                    _512.colour = WHITE
+                    _2048.colour = WHITE
+                    self.difficulty = 256
+
+                if not play.isOver(pos) and \
+                        not _2048.isOver(pos) and \
+                        not _1024.isOver(pos) and \
+                        not _512.isOver(pos) and \
+                        not _256.isOver(pos):
+                    self.difficulty = 0
+
+                    _2048.colour = WHITE
+                    _1024.colour = WHITE
+                    _512.colour = WHITE
+                    _256.colour = WHITE
+
+                if play.isOver(pos) and self.difficulty != 0:
+                    ok = 1
+
+            if play.isOver(pos):
+                play.colour = YELLOW
+            else:
+                play.colour = WHITE
+
+            if ok == 1:
+                break
 
     def run(self):
+        self.main_menu()
+        self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         while True:
             self.input()
             self.update()
