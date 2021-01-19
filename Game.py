@@ -13,6 +13,7 @@ class Game:
         pygame.display.set_caption("2048")
         self.game_board = []
         self.gameObjects = []
+        self.state = "PLAY"
         for r, y in enumerate(range(20, 660, 160)):
             row = []
             for c, x in enumerate(range(20, 660, 160)):
@@ -150,6 +151,26 @@ class Game:
                         self.game_board[last_r][last_c] = square
                         self.game_board[i][j] = temp
 
+    def chech_state(self):
+        game_ended = True
+        for i in range(4):
+            for j in range(4):
+                if self.difficulty == self.game_board[i][j].value:
+                    self.state = "WON"
+                    return
+                if (self.game_board[i][j].value == 0):
+                    game_ended = False
+                if game_ended == True:
+                    if i != 3 and self.game_board[i][j].value == self.game_board[i+1][j].value:
+                        game_ended = False
+                    elif j != 3 and self.game_board[i][j].value == self.game_board[i][j+1].value:
+                        game_ended = False
+                    elif i != 0 and self.game_board[i][j].value == self.game_board[i-1][j].value:
+                        game_ended = False
+                    elif j != 0 and self.game_board[i][j].value == self.game_board[i][j-1].value:
+                        game_ended = False
+        if game_ended == True:
+            self.state = "LOST"
 
     def input(self):
         events = pygame.event.get()
@@ -157,15 +178,19 @@ class Game:
             if event.type == KEYUP:
                 if event.key == K_d:
                     self.move_right()
+                    self.chech_state()
                     self.get_random_empty_square()
                 if event.key == K_a:
                     self.move_left()
+                    self.chech_state()
                     self.get_random_empty_square()
                 if event.key == K_w:
                     self.move_up()
+                    self.chech_state()
                     self.get_random_empty_square()
                 if event.key == K_s:
                     self.move_down()
+                    self.chech_state()
                     self.get_random_empty_square()
             elif event.type == QUIT:
                 pygame.quit()
@@ -176,22 +201,29 @@ class Game:
             obj.update()
 
     def draw(self):
-        self.window.fill(WHITE)
+        if self.state == "PLAY":
+            self.window.fill(WHITE)
 
-        for obj in self.gameObjects:
-            obj.draw()
+            for obj in self.gameObjects:
+                obj.draw()
 
-        pygame.display.update()
+            pygame.display.update()
 
-        pygame.time.Clock().tick(30)
-
+            pygame.time.Clock().tick(30)
+        elif self.state == "WON":
+            # TODO won_screen
+            pass
+        else:
+            # TODO lost_screen
+            pass
+                
     def main_menu(self):
         self.window = pygame.display.set_mode((500, 500))
         ok = 0
-        difficulty = 0
+        self.difficulty = 0
 
         # create play button
-        play = Button(WHITE, 235, 400, 45, 45, "play")
+        play = Button(WHITE, 235, 400, 45, 45, "Play")
 
         # create difficulty buttons
         _2048 = Button(WHITE, 130, 300, 45, 45, "2048")
@@ -237,28 +269,28 @@ class Game:
                     _1024.colour = WHITE
                     _512.colour = WHITE
                     _256.colour = WHITE
-                    difficulty = 2048
+                    self.difficulty = 2048
                 
                 if _1024.isOver(pos):
                     _1024.colour = YELLOW
                     _2048.colour = WHITE
                     _512.colour = WHITE
                     _256.colour = WHITE
-                    difficulty = 1024
+                    self.difficulty = 1024
                 
                 if _512.isOver(pos):
                     _512.colour = YELLOW
                     _1024.colour = WHITE
                     _2048.colour = WHITE
                     _256.colour = WHITE
-                    difficulty = 512
+                    self.difficulty = 512
                 
                 if _256.isOver(pos):
                     _256.colour = YELLOW
                     _1024.colour = WHITE
                     _512.colour = WHITE
                     _2048.colour = WHITE
-                    difficulty = 256
+                    self.difficulty = 256
 
                 if not play.isOver(pos) and \
                     not _2048.isOver(pos) and \
@@ -266,14 +298,14 @@ class Game:
                     not _512.isOver(pos) and \
                     not _256.isOver(pos):
 
-                    difficulty = 0
+                    self.difficulty = 0
 
                     _2048.colour = WHITE
                     _1024.colour = WHITE
                     _512.colour = WHITE
                     _256.colour = WHITE
                 
-                if play.isOver(pos) and difficulty != 0:
+                if play.isOver(pos) and self.difficulty != 0:
                         ok = 1
             
             if play.isOver(pos):
