@@ -43,5 +43,5 @@ class NumberSquare(GameObject):
             self.position[1] = 0
 
     def draw(self):
-        pygame.draw.rect(self.game.window, BLACK, pygame.Rect(self.position[0],self.position[1],60,60))
+        pygame.draw.rect(self.game.window, GREEN, pygame.Rect(self.position[0],self.position[1],60,60))
     
