@@ -1,4 +1,3 @@
-
 import pygame
 import sys
 from pygame.locals import *
@@ -6,6 +5,7 @@ import random
 import math
 from NumberSquare import NumberSquare
 from Constants import *
+import speech_recognition as sr
 
 
 class Game:
@@ -14,6 +14,12 @@ class Game:
         pygame.display.set_caption("2048")
         self.game_board = []
         self.gameObjects = []
+        self.vocal_exit = pygame.event.Event(pygame.USEREVENT, attr1='vocal_exit')
+        self.vocal_right = pygame.event.Event(pygame.USEREVENT, attr1='vocal_right')
+        self.vocal_left = pygame.event.Event(pygame.USEREVENT, attr1='vocal_left')
+        self.vocal_up = pygame.event.Event(pygame.USEREVENT, attr1='vocal_up')
+        self.vocal_down = pygame.event.Event(pygame.USEREVENT, attr1='vocal_down')
+        self.r = sr.Recognizer()
         for r, y in enumerate(range(20, 660, 160)):
             row = []
             for c, x in enumerate(range(20, 660, 160)):
@@ -151,26 +157,43 @@ class Game:
                         self.game_board[last_r][last_c] = square
                         self.game_board[i][j] = temp
 
+    def get_command(self, recognizer):
+        with sr.Microphone() as source:
+            print("Say next command or exit to end:")
+            audio = recognizer.record(source, duration=2)
+            try:
+                command = recognizer.recognize_google(audio)
+                if 'exit' in command:
+                    pygame.event.post(self.vocal_exit)
+                elif 'right' in command:
+                    pygame.event.post(self.vocal_right)
+                elif 'left' in command:
+                    pygame.event.post(self.vocal_left)
+                elif 'up' in command:
+                    pygame.event.post(self.vocal_up)
+                elif 'down' in command:
+                    pygame.event.post(self.vocal_down)
+            except sr.UnknownValueError:
+                pass
 
     def input(self):
         events = pygame.event.get()
         for event in events:
-            if event.type == KEYUP:
-                if event.key == K_d:
-                    self.move_right()
-                    self.get_random_empty_square()
-                if event.key == K_a:
-                    self.move_left()
-                    self.get_random_empty_square()
-                if event.key == K_w:
-                    self.move_up()
-                    self.get_random_empty_square()
-                if event.key == K_s:
-                    self.move_down()
-                    self.get_random_empty_square()
-            elif event.type == QUIT:
+            if event == self.vocal_exit or event.type == QUIT:
                 pygame.quit()
                 sys.exit()
+            if event == self.vocal_right:
+                self.move_right()
+                self.get_random_empty_square()
+            if event == self.vocal_left:
+                self.move_left()
+                self.get_random_empty_square()
+            if event == self.vocal_up:
+                self.move_up()
+                self.get_random_empty_square()
+            if event == self.vocal_down:
+                self.move_down()
+                self.get_random_empty_square()
 
     def update(self):
         for obj in self.gameObjects:
@@ -191,3 +214,4 @@ class Game:
             self.input()
             self.update()
             self.draw()
+            self.get_command(self.r)
