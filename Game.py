@@ -32,10 +32,10 @@ class Game:
             self.window.blit(s, (0, 0))
             message = "YOU WIN"
 
-            self.window.blit(font.render(message, 1, BLACK), (140, 180))
+            self.window.blit(font.render(message, 1, BLACK), (280, 180))
             # Ask user to play again
             self.window.blit(font.render(
-                "Play again? (yes/ no)", 1, BLACK), (80, 255))
+                "Play again? (yes/ no)", 1, BLACK), (230, 255))
 
             pygame.display.update()
             for event in pygame.event.get():
@@ -43,6 +43,9 @@ class Game:
                         (event.type == pygame.KEYDOWN and event.key == K_n):
                     pygame.quit()
                     sys.exit()
+                if event.type == pygame.KEYDOWN and event.key == K_y:
+                        pygame.quit()
+                        sys.exit()
 
     def LOSE(self):
         font = pygame.font.SysFont("Verdana", 20, bold=True)
@@ -53,10 +56,10 @@ class Game:
             self.window.blit(s, (0, 0))
             message = "YOU LOSE"
 
-            self.window.blit(font.render(message, 1, BLACK), (140, 180))
+            self.window.blit(font.render(message, 1, BLACK), (280, 180))
             # Ask user to play again
             self.window.blit(font.render(
-                "Play again? (yes/ no)", 1, BLACK), (80, 255))
+                "Play again? (yes/ no)", 1, BLACK), (230, 255))
 
             pygame.display.update()
             for event in pygame.event.get():
@@ -64,7 +67,10 @@ class Game:
                         (event.type == pygame.KEYDOWN and event.key == K_n):
                         pygame.quit()
                         sys.exit()
-
+                if event.type == pygame.KEYDOWN and event.key == K_y:
+                        pygame.quit()
+                        sys.exit()
+    
     def input(self):
         events = pygame.event.get()
         for event in events:
